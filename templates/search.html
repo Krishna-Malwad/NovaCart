@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% import "_product_card.html" as cards %}
+
+{% block title %}{% if query %}"{{ query }}" — Search{% else %}Browse{% endif %} — NovaCart{% endblock %}
+
+{% block content %}
+<div class="search-layout">
+  <aside class="filters">
+    <h3>Filters</h3>
+    <form method="get" action="{{ url_for('search.search') }}" id="filterForm">
+      <input type="hidden" name="q" value="{{ query }}">
+
+      <div class="filter-group">
+        <h4>Category</h4>
+        <label>
+          <input type="radio" name="category" value="" {% if not selected_category %}checked{% endif %} onchange="this.form.submit()">
+          All Categories
+        </label>
+        {% for cat in categories %}
+        <label>
+          <input type="radio" name="category" value="{{ cat }}" {% if selected_category == cat %}checked{% endif %} onchange="this.form.submit()">
+          {{ cat }}
+        </label>
+        {% endfor %}
+      </div>
+
+      <div class="filter-group">
+        <h4>Price Range (₹)</h4>
+        <div class="price-inputs">
+          <input type="number" name="min_price" placeholder="Min" value="{{ min_price or '' }}">
+          <span>–</span>
+          <input type="number" name="max_price" placeholder="Max" value="{{ max_price or '' }}">
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h4>Minimum Rating</h4>
+        {% for r in [4.5, 4, 3.5, 3] %}
+        <label>
+          <input type="radio" name="min_rating" value="{{ r }}" {% if min_rating == r %}checked{% endif %} onchange="this.form.submit()">
+          {{ r }}★ &amp; above
+        </label>
+        {% endfor %}
+        <label>
+          <input type="radio" name="min_rating" value="" {% if not min_rating %}checked{% endif %} onchange="this.form.submit()">
+          Any rating
+        </label>
+      </div>
+
+      <input type="hidden" name="sort" value="{{ sort_by or '' }}">
+      <button type="submit" class="btn btn-primary btn-block btn-sm">Apply Filters</button>
+    </form>
+  </aside>
+
+  <div class="search-results">
+    <div class="search-results-head">
+      <div>
+        <h2>{% if query %}Results for "{{ query }}"{% else %}All Products{% endif %}</h2>
+        <span class="count">{{ result_count }} product{{ 's' if result_count != 1 else '' }} found</span>
+      </div>
+      <form method="get" action="{{ url_for('search.search') }}" id="sortForm">
+        <input type="hidden" name="q" value="{{ query }}">
+        <input type="hidden" name="category" value="{{ selected_category or '' }}">
+        <input type="hidden" name="min_price" value="{{ min_price or '' }}">
+        <input type="hidden" name="max_price" value="{{ max_price or '' }}">
+        <input type="hidden" name="min_rating" value="{{ min_rating or '' }}">
+        <select name="sort" class="sort-select" onchange="this.form.submit()">
+          <option value="">Sort: Relevance</option>
+          <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+          <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+          <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Rating</option>
+          <option value="popularity" {% if sort_by == 'popularity' %}selected{% endif %}>Popularity</option>
+        </select>
+      </form>
+    </div>
+
+    {% if results %}
+    <div class="search-grid">
+      {% for p in results %}{{ cards.product_card(p) }}{% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      {% if query %}
+      <h3>No products found for "{{ query }}"</h3>
+      <p>Try another search or browse our categories.</p>
+      <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+        <a href="{{ url_for('search.search') }}" class="btn btn-secondary btn-sm">Browse All Products</a>
+        <a href="{{ url_for('main.home') }}" class="btn btn-primary btn-sm">Return to Home</a>
+      </div>
+      {% else %}
+      <h3>No products match your filters</h3>
+      <p>Try widening your price range or clearing a filter.</p>
+      <div style="margin-top: 1.25rem;">
+        <a href="{{ url_for('search.search') }}" class="btn btn-secondary btn-sm">Clear All Filters</a>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

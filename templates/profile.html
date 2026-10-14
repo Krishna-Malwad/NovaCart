@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}My Profile — NovaCart{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+  <div class="profile-header">
+    <div class="profile-avatar">{{ user.name[0]|upper }}</div>
+    <div>
+      <h1>{{ user.name }}</h1>
+      <p>{{ user.email }}</p>
+    </div>
+  </div>
+
+  <div class="profile-layout">
+    <div class="profile-card">
+      <h3>Account Details</h3>
+      <form method="post" action="{{ url_for('auth.profile_update') }}">
+        <div class="form-field">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" value="{{ user.name }}" required>
+        </div>
+        <div class="form-field">
+          <label for="phone">Mobile Number</label>
+          <div class="input-with-prefix">
+            <span class="phone-prefix">+91</span>
+            <input type="tel" id="phone" name="phone" value="{{ user.phone or '' }}" placeholder="10-digit mobile number"
+                   pattern="[0-9]{10}" minlength="10" maxlength="10" inputmode="numeric"
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"
+                   title="Mobile number must contain exactly 10 digits">
+          </div>
+          <small class="field-hint" style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:4px;">Mobile number must contain exactly 10 digits.</small>
+        </div>
+        <div class="form-field">
+          <label for="address">Default Address</label>
+          <textarea id="address" name="address" rows="2" placeholder="House no., street, area">{{ user.address or '' }}</textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" value="{{ user.city or '' }}" placeholder="e.g. Hyderabad">
+          </div>
+          <div class="form-field">
+            <label for="state">State</label>
+            <input type="text" id="state" name="state" value="{{ user.state or '' }}" placeholder="e.g. Telangana">
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="pincode">Pincode</label>
+          <input type="text" id="pincode" name="pincode" value="{{ user.pincode or '' }}" placeholder="6-digit pincode"
+                 pattern="[0-9]{6}" minlength="6" maxlength="6" inputmode="numeric"
+                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);"
+                 title="Pincode must contain exactly 6 digits">
+          <small class="field-hint" style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:4px;">Pincode must contain exactly 6 digits.</small>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:6px;">Save Changes</button>
+      </form>
+      <form action="{{ url_for('auth.logout') }}" method="post" style="margin-top:12px;">
+        <button type="submit" class="btn btn-outline btn-block">Log Out</button>
+      </form>
+    </div>
+
+    <div class="profile-card">
+      <h3>Order History {% if orders %}({{ orders|length }}){% endif %}</h3>
+      {% if orders %}
+        {% for entry in orders %}
+        <div class="order-history-item">
+          <div class="order-history-head">
+            <span class="oh-id">Order #{{ entry.order.id }}</span>
+            <span class="oh-date">{{ entry.order.created_at }}</span>
+          </div>
+          {% for item in entry['items'] %}
+          <div class="order-history-line">
+            <span>{{ item.product_name }} × {{ item.quantity }}</span>
+            <span>{{ currency }}{{ "{:,}".format(item.quantity * item.price) }}</span>
+          </div>
+          {% endfor %}
+          <div class="order-history-total">
+            <span>Grand Total</span>
+            <span>{{ currency }}{{ "{:,}".format(entry.order.grand_total) }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="empty-state" style="padding:40px 20px;">
+        <h3 style="font-size:16px;">No orders yet</h3>
+        <p style="font-size:13px;">Your placed orders will show up here.</p>
+        <a href="{{ url_for('main.home') }}" class="btn btn-primary btn-sm" style="margin-top:12px;">Start Shopping</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const form = document.querySelector('form[action*="profile_update"]');
+  if (!form) return;
+  const phone = document.getElementById("phone");
+  const pincode = document.getElementById("pincode");
+
+  form.addEventListener("submit", function(e) {
+    if (phone && phone.value.trim() && !/^[0-9]{10}$/.test(phone.value.trim())) {
+      e.preventDefault();
+      alert("Mobile number must contain exactly 10 digits.");
+      phone.focus();
+      return;
+    }
+    if (pincode && pincode.value.trim() && !/^[0-9]{6}$/.test(pincode.value.trim())) {
+      e.preventDefault();
+      alert("Pincode must contain exactly 6 digits.");
+      pincode.focus();
+      return;
+    }
+  });
+})();
+</script>
+{% endblock %}

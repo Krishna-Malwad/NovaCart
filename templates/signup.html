@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Create Account — NovaCart{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1>Create your account</h1>
+    <p class="auth-subtitle">Join NovaCart to track orders and check out faster</p>
+
+    {% if errors %}
+    <div class="auth-errors">
+      <ul>
+        {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('auth.signup') }}" autocomplete="on">
+      <div class="form-field">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" required placeholder="e.g. Aditi Sharma" value="{{ form_values.name if form_values else '' }}" autocomplete="name">
+      </div>
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="Enter your email" value="{{ form_values.email if form_values else '' }}" autocomplete="email">
+      </div>
+      <div class="form-field">
+        <label for="phone">Mobile Number</label>
+        <div class="input-with-prefix">
+          <span class="phone-prefix">+91</span>
+          <input type="tel" id="phone" name="phone" required pattern="[0-9]{10}" minlength="10" maxlength="10" inputmode="numeric" placeholder="10-digit mobile number" value="{{ form_values.phone if form_values else '' }}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" title="Mobile number must contain exactly 10 digits." autocomplete="tel">
+        </div>
+        <small class="field-hint" style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:4px;">Mobile number must contain exactly 10 digits.</small>
+      </div>
+      <div class="form-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="6" placeholder="Enter your password" autocomplete="new-password">
+      </div>
+      <div class="form-field">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required minlength="6" placeholder="Confirm your password" autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" style="padding:13px; margin-top:6px;">Create Account</button>
+    </form>
+
+    <p class="auth-footer-note">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+  </div>
+</div>
+{% endblock %}

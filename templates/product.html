@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% import "_product_card.html" as cards %}
+
+{% block title %}{{ product.name }} — NovaCart{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('main.home') }}">Home</a><span>/</span>
+  <a href="{{ url_for('search.search', category=product.category) }}">{{ product.category }}</a><span>/</span>
+  {{ product.name }}
+</div>
+
+<div class="product-detail">
+  <div class="pd-gallery">
+    <div class="pd-main-image">
+      <img src="{{ product.image }}" alt="{{ product.name }}" id="pdMainImage">
+    </div>
+    <div class="pd-thumbs">
+      {% for i in range(4) %}
+      <div class="pd-thumb {% if i == 0 %}active{% endif %}" data-image="{{ product.image }}">
+        <img src="{{ product.image }}" alt="thumbnail {{ i+1 }}">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="pd-info">
+    <div class="product-brand">{{ product.brand }}</div>
+    <h1>{{ product.name }}</h1>
+    <div class="pd-rating-row">
+      <span class="rating-pill">{{ product.rating }} ★</span>
+      <span style="color:var(--gray-600); font-size:13.5px;">{{ product.reviews }} ratings &amp; reviews</span>
+    </div>
+
+    <div class="pd-price-block">
+      <div class="pd-price-row">
+        <span class="pd-price-current">{{ currency }}{{ "{:,}".format(product.discounted_price) }}</span>
+        {% if product.discount_pct > 0 %}
+        <span class="price-original">{{ currency }}{{ "{:,}".format(product.original_price) }}</span>
+        <span class="price-discount">{{ product.discount_pct }}% off</span>
+        {% endif %}
+      </div>
+      {% if product.discount_pct > 0 %}
+      <div class="pd-savings">You save {{ currency }}{{ "{:,}".format(product.original_price - product.discounted_price) }} on this order</div>
+      {% endif %}
+      <div class="pd-gst-note">Inclusive of all taxes. GST calculated at checkout.</div>
+    </div>
+
+    <div class="pd-meta-grid">
+      <div class="pd-meta-item">
+        <div class="label">Availability</div>
+        <div class="value {% if product.stock > 0 %}in-stock{% else %}out-stock{% endif %}">
+          {% if product.stock > 0 %}In Stock ({{ product.stock }} units){% else %}Out of Stock{% endif %}
+        </div>
+      </div>
+      <div class="pd-meta-item">
+        <div class="label">Delivery</div>
+        <div class="value">2-4 business days</div>
+      </div>
+      <div class="pd-meta-item">
+        <div class="label">Category</div>
+        <div class="value">{{ product.category }}</div>
+      </div>
+      <div class="pd-meta-item">
+        <div class="label">Brand</div>
+        <div class="value">{{ product.brand }}</div>
+      </div>
+    </div>
+
+    <div class="pd-actions">
+      <button class="btn btn-primary" data-action="add-to-cart" data-product-id="{{ product.id }}" {% if product.stock == 0 %}disabled{% endif %}>
+        Add to Cart
+      </button>
+      <button class="btn btn-dark" data-action="buy-now" data-product-id="{{ product.id }}" {% if product.stock == 0 %}disabled{% endif %}>
+        Buy Now
+      </button>
+      <button class="btn btn-outline" data-action="toggle-wishlist" data-product-id="{{ product.id }}" id="pdWishlistBtn">
+        ♡ Wishlist
+      </button>
+    </div>
+
+    <div class="pd-tabs-section">
+      <h3>Description</h3>
+      <p class="pd-description">{{ product.description }}</p>
+
+      <h3>Specifications</h3>
+      <table class="spec-table">
+        <tr><td>Brand</td><td>{{ product.brand }}</td></tr>
+        <tr><td>Category</td><td>{{ product.category }}</td></tr>
+        <tr><td>Rating</td><td>{{ product.rating }} / 5 ({{ product.reviews }} reviews)</td></tr>
+        <tr><td>Stock</td><td>{{ product.stock }} units available</td></tr>
+        <tr><td>Original Price</td><td>{{ currency }}{{ "{:,}".format(product.original_price) }}</td></tr>
+        <tr><td>Discounted Price</td><td>{{ currency }}{{ "{:,}".format(product.discounted_price) }}</td></tr>
+      </table>
+
+      <h3>Best suited for</h3>
+      <div>
+        {% for tag in product.tags_list %}
+        <span class="tag-chip">{{ tag }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="section section-alt">
+  <div class="section-head">
+    <div>
+      <h2>Recommended for you</h2>
+      <p>Powered by NovaCart's TF-IDF similarity engine — here's why each pick matches</p>
+    </div>
+  </div>
+  <div class="product-grid">
+    {% for reco in recommendations %}
+    <div class="reco-card">
+      <span class="match-badge">{{ reco.match_pct }}% match</span>
+      {{ cards.product_card(reco.product) }}
+      <p class="reco-reason">{{ reco.reason }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.NOVA_CONTEXT_PRODUCT_ID = {{ product.id }};
+</script>
+{% endblock %}

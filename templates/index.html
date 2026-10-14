@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+{% import "_product_card.html" as cards %}
+
+{% block title %}NovaCart — India's Smart Multi-Category Marketplace{% endblock %}
+
+{% block content %}
+
+<!-- Marketplace Hero Section -->
+<section class="marketplace-hero">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <span class="hero-eyebrow">🛒 India's Smart Multi-Category Marketplace</span>
+      <h1>Big Savings on <span>Top Brands</span> Across Every Category</h1>
+      <p>Discover 200+ curated products across fashion, electronics, home essentials, books, groceries and more. Enjoy genuine deals, fast delivery, and smart AI shopping assistance.</p>
+      <div class="hero-ctas">
+        <a href="#topDealsSection" class="btn btn-primary">Shop Today's Deals</a>
+        <a href="#categorySection" class="btn btn-outline" style="color:var(--white); border-color:rgba(255,255,255,0.35);">Shop by Category</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><strong>200+</strong><span>Curated Products</span></div>
+        <div class="hero-stat"><strong>13</strong><span>Departments</span></div>
+        <div class="hero-stat"><strong>FREE</strong><span>Delivery on ₹499+</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      {% for p in deals[:4] %}
+      <a href="{{ url_for('main.product_detail', product_id=p.id) }}" class="hero-visual-card">
+        <span class="hv-badge">{{ p.discount_pct }}% OFF</span>
+        <div class="hv-img-box">
+          <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy"
+               onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\' fill=\'%23f1f5f9\'><rect width=\'120\' height=\'120\' fill=\'%23f8fafc\'/></svg>';">
+        </div>
+        <div class="hv-info">
+          <span class="hv-brand">{{ p.brand }}</span>
+          <div class="hv-name" title="{{ p.name }}">{{ p.name }}</div>
+          <div class="hv-pricing">
+            <span class="hv-price">{{ currency }}{{ "{:,}".format(p.discounted_price) }}</span>
+            <span class="hv-mrp">{{ currency }}{{ "{:,}".format(p.original_price) }}</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 1. Top Offers / Deals Section (First major product section) -->
+<section class="section" id="topDealsSection">
+  <div class="section-head">
+    <div>
+      <span class="section-eyebrow deals">⚡ Limited Time Deals</span>
+      <h2>Today's Best Deals</h2>
+      <p>Highest discounts across fashion, tech, home &amp; fitness — updated live from the catalogue</p>
+    </div>
+    <a href="{{ url_for('search.search', sort='price_low') }}" class="section-link">View all deals →</a>
+  </div>
+  <div class="product-grid">
+    {% for p in deals %}{{ cards.product_card(p, is_deal=true) }}{% endfor %}
+  </div>
+</section>
+
+<!-- 2. Shop by Category (Visually attractive category tiles) -->
+<section class="section section-alt" id="categorySection">
+  <div class="section-head">
+    <div>
+      <span class="section-eyebrow">Explore Departments</span>
+      <h2>Shop by Category</h2>
+      <p>Browse our extensive marketplace departments with one click</p>
+    </div>
+    <a href="{{ url_for('search.search') }}" class="section-link">All Categories →</a>
+  </div>
+
+  <div class="category-grid">
+    <a href="{{ url_for('search.search', category='Mobiles & Accessories') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#EFF6FF; color:#2563EB;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      </div>
+      <span class="category-title">Mobiles &amp; Acc.</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Computers & Laptops') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#F0FDF4; color:#16A34A;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+      </div>
+      <span class="category-title">Laptops &amp; PCs</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Electronics') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#FAF5FF; color:#9333EA;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+      </div>
+      <span class="category-title">Electronics</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Fashion') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#FFF1F2; color:#E11D48;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.5a2 2 0 0 0 1.96 1.68H6v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10.87h1.18a2 2 0 0 0 1.96-1.68l.58-3.5a2 2 0 0 0-1.34-2.23z"/></svg>
+      </div>
+      <span class="category-title">Fashion</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Footwear') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#FFFBEB; color:#D97706;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14c2-4 7-6 13-4l5 3v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4z"/><path d="M7 14V9"/></svg>
+      </div>
+      <span class="category-title">Footwear</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Home & Kitchen') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#FEF2F2; color:#DC2626;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span class="category-title">Home &amp; Kitchen</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Beauty & Personal Care') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#FDF2F8; color:#DB2777;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <span class="category-title">Beauty &amp; Care</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Books') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#EEF2FF; color:#4F46E5;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </div>
+      <span class="category-title">Books</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Sports & Fitness') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#ECFDF5; color:#059669;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M2 8h4M2 16h4M18 8h4M18 16h4M6 12h12"/></svg>
+      </div>
+      <span class="category-title">Sports &amp; Fitness</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Toys & Games') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#FEF3C7; color:#B45309;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </div>
+      <span class="category-title">Toys &amp; Games</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Grocery') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#F0FDF4; color:#15803D;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
+      <span class="category-title">Grocery</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Gaming') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#F5F3FF; color:#7C3AED;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="6"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="17" cy="13" r="1"/></svg>
+      </div>
+      <span class="category-title">Gaming</span>
+    </a>
+
+    <a href="{{ url_for('search.search', category='Bags & Accessories') }}" class="category-tile">
+      <div class="category-icon-box" style="background:#F1F5F9; color:#475569;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 20h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3V4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
+      </div>
+      <span class="category-title">Bags &amp; Luggage</span>
+    </a>
+  </div>
+</section>
+
+<!-- 3. Popular / Trending Section -->
+<section class="section">
+  <div class="section-head">
+    <div>
+      <span class="section-eyebrow">Trending This Week</span>
+      <h2>Popular &amp; Trending Products</h2>
+      <p>Top customer picks across all departments with highest verified reviews</p>
+    </div>
+    <a href="{{ url_for('search.search', sort='popularity') }}" class="section-link">View all trending →</a>
+  </div>
+  <div class="product-grid">
+    {% for p in trending %}{{ cards.product_card(p) }}{% endfor %}
+  </div>
+</section>
+
+<!-- 4. Recommended Products (ML / Curated high ratings) -->
+<section class="section section-alt">
+  <div class="section-head">
+    <div>
+      <span class="section-eyebrow reco">Curated For You</span>
+      <h2>Recommended for You</h2>
+      <p>High-rated items handpicked for quality, value, and customer satisfaction</p>
+    </div>
+    <a href="{{ url_for('search.search', min_rating=4.5) }}" class="section-link">Top rated (4.5★+) →</a>
+  </div>
+  <div class="product-grid">
+    {% for p in recommended %}{{ cards.product_card(p) }}{% endfor %}
+  </div>
+</section>
+
+<!-- 5. NOVA AI Shopping Assistant Feature Banner -->
+<section class="nova-feature-banner">
+  <div class="nova-banner-inner">
+    <div class="nova-banner-left">
+      <span class="nova-tag">🤖 Smart Shopping Assistant</span>
+      <h2>Shop Smarter with NOVA AI</h2>
+      <p>Not sure which product matches your budget or use-case? Ask NOVA in plain English. NOVA searches the live catalogue and finds real products in seconds.</p>
+      
+      <div class="nova-quick-prompts">
+        <span class="prompt-chip" data-query="Show me running shoes under 3000">👟 Running shoes under ₹3000</span>
+        <span class="prompt-chip" data-query="Best books under 500">📚 Best books under ₹500</span>
+        <span class="prompt-chip" data-query="Suggest a good mixer grinder">🍳 Mixer grinder for kitchen</span>
+        <span class="prompt-chip" data-query="Skincare products under 1500">✨ Skincare products under ₹1500</span>
+        <span class="prompt-chip" data-query="Compare iPhone and Samsung">📱 Compare iPhone and Samsung</span>
+      </div>
+
+      <button class="btn btn-primary btn-nova-open" id="heroNovaBannerBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M12 2a2 2 0 0 1 2 2v1.1a7 7 0 0 1 4 6.4V14l1.4 2.8a1 1 0 0 1-.9 1.5H5.5a1 1 0 0 1-.9-1.5L6 14v-2.5a7 7 0 0 1 4-6.4V4a2 2 0 0 1 2-2z"/><path d="M9 19a3 3 0 0 0 6 0"/></svg>
+        Chat with NOVA AI Now
+      </button>
+    </div>
+    <div class="nova-banner-right">
+      <div class="nova-mock-chat">
+        <div class="mock-msg mock-user">Show me running shoes under ₹3000</div>
+        <div class="mock-msg mock-bot">
+          <strong>NOVA AI:</strong> Found top picks in Footwear under ₹3,000! My top recommendation is the <em>Puma Smashic Casual Sneakers</em> (4.2★, ₹2,199).
+        </div>
+        <div class="mock-msg mock-user">Is there a good mixer grinder for everyday cooking?</div>
+        <div class="mock-msg mock-bot">
+          <strong>NOVA AI:</strong> Yes! The <em>Prestige Iris 750W Mixer Grinder</em> (4.2★, ₹2,921) features 3 stainless steel jars &amp; high speed motor.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Marketplace Trust & Assurance Strip -->
+<section class="trust-strip">
+  <div class="trust-inner">
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <h4>100% Genuine Products</h4>
+        <p>Direct from verified brands &amp; distributors</p>
+      </div>
+    </div>
+
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <div>
+        <h4>Fast 2-4 Day Delivery</h4>
+        <p>Free delivery on all orders above ₹499</p>
+      </div>
+    </div>
+
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </div>
+      <div>
+        <h4>7-Day Easy Returns</h4>
+        <p>Hassle-free replacement or quick refund</p>
+      </div>
+    </div>
+
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      </div>
+      <div>
+        <h4>Cash on Delivery &amp; UPI</h4>
+        <p>Pay conveniently on arrival or via QR</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Founder section temporarily hidden for college group project submission.
+     Re-enable after submission. -->
+{% set show_founder = false %}
+{% if show_founder %}
+<section class="founder-section">
+  <div class="founder-card">
+    <div class="founder-photo-wrap">
+      <img src="{{ url_for('static', filename='images/founder.png') }}" alt="Krishna Malwad — Founder of NovaCart">
+    </div>
+    <div class="founder-info">
+      <span class="founder-eyebrow">👋 The Person Behind NovaCart</span>
+      <h2>Meet the Founder</h2>
+      <p class="founder-name">Krishna Malwad</p>
+      <p class="founder-title">Founder &amp; Developer</p>
+      <p class="founder-desc">NovaCart is an AI-powered shopping platform built to demonstrate how Artificial Intelligence, Machine Learning, and Data Analytics can create a smarter online shopping experience.</p>
+      <div class="founder-actions">
+        <a href="https://github.com/Krishna-Malwad" target="_blank" rel="noopener noreferrer" class="btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.79-.25.79-.55 0-.27-.01-1-.02-1.96-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.04-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.59.24 2.77.12 3.06.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.4-5.27 5.69.42.36.78 1.07.78 2.16 0 1.56-.02 2.82-.02 3.2 0 .31.21.66.8.55A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          GitHub
+        </a>
+        <a href="https://www.linkedin.com/in/krishna-malwad-b7b127392/" target="_blank" rel="noopener noreferrer" class="btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.61 0 4.28 2.38 4.28 5.47v6.27zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          LinkedIn
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Welcome Authentication Delayed Modal (Guest Customers Only) -->
+{% if not nav_user %}
+<div class="welcome-auth-modal-overlay" id="welcomeAuthModal" style="display:none;" aria-hidden="true" role="dialog">
+  <div class="welcome-auth-modal-card">
+    <button type="button" class="welcome-modal-close" id="welcomeModalClose" aria-label="Close">&times;</button>
+    <div class="welcome-modal-badge">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <h2>Welcome to NovaCart</h2>
+    <p>Sign in to track orders, save your wishlist, and get personalized recommendations across all categories.</p>
+    
+    <div class="welcome-modal-actions">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-block">Log In</a>
+      <a href="{{ url_for('auth.signup') }}" class="btn btn-outline btn-block">Create Account</a>
+      <button type="button" class="welcome-skip-btn" id="welcomeModalSkip">Skip for now</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Interaction for NOVA feature banner button and prompt chips
+(function() {
+  const bannerBtn = document.getElementById('heroNovaBannerBtn');
+  const novaToggle = document.getElementById('novaToggle');
+  const novaInput = document.getElementById('novaInput');
+  const novaForm = document.getElementById('novaForm');
+
+  if (bannerBtn && novaToggle) {
+    bannerBtn.addEventListener('click', () => {
+      novaToggle.click();
+    });
+  }
+
+  document.querySelectorAll('.prompt-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const q = chip.dataset.query;
+      if (!novaToggle || !novaInput) return;
+      const panel = document.getElementById('novaPanel');
+      if (panel && !panel.classList.contains('open')) {
+        novaToggle.click();
+      }
+      novaInput.value = q;
+      setTimeout(() => {
+        if (novaForm) {
+          novaForm.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+      }, 150);
+    });
+  });
+
+  // Delayed Welcome Login/Signup Popup (2.5 seconds, guest only, session persistence)
+  const welcomeModal = document.getElementById('welcomeAuthModal');
+  if (welcomeModal) {
+    const isDismissed = sessionStorage.getItem('novacart_welcome_modal_dismissed');
+    if (!isDismissed) {
+      setTimeout(() => {
+        // Double check in case user navigated away or logged in
+        if (!sessionStorage.getItem('novacart_welcome_modal_dismissed')) {
+          welcomeModal.style.display = 'flex';
+          welcomeModal.setAttribute('aria-hidden', 'false');
+        }
+      }, 2500);
+    }
+
+    function dismissModal() {
+      welcomeModal.style.display = 'none';
+      welcomeModal.setAttribute('aria-hidden', 'true');
+      sessionStorage.setItem('novacart_welcome_modal_dismissed', 'true');
+    }
+
+    const closeBtn = document.getElementById('welcomeModalClose');
+    const skipBtn = document.getElementById('welcomeModalSkip');
+    if (closeBtn) closeBtn.addEventListener('click', dismissModal);
+    if (skipBtn) skipBtn.addEventListener('click', dismissModal);
+    welcomeModal.addEventListener('click', (e) => {
+      if (e.target === welcomeModal) dismissModal();
+    });
+  }
+})();
+</script>
+{% endblock %}

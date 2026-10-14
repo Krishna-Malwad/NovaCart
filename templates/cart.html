@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Your Cart — NovaCart{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+  <h1 class="page-title">Shopping Cart {% if items %}({{ items|length }} item{{ 's' if items|length != 1 else '' }}){% endif %}</h1>
+
+  {% if items %}
+  <div class="cart-layout">
+    <div class="cart-items" id="cartItemsList">
+      {% for item in items %}
+      <div class="cart-item" data-product-id="{{ item.product.id }}">
+        <div class="cart-item-img">
+          <img src="{{ item.product.image }}" alt="{{ item.product.name }}">
+        </div>
+        <div>
+          <div class="cart-item-name">{{ item.product.name }}</div>
+          <div class="cart-item-meta">{{ item.product.brand }} · {{ item.product.category }}</div>
+          <div class="cart-item-price">{{ currency }}{{ "{:,}".format(item.product.discounted_price) }}</div>
+          <a href="#" class="remove-link" data-action="remove-from-cart" data-product-id="{{ item.product.id }}">Remove</a>
+        </div>
+        <div class="qty-control">
+          <button data-action="qty-decrease" data-product-id="{{ item.product.id }}" data-qty="{{ item.quantity }}">−</button>
+          <span class="qty-display">{{ item.quantity }}</span>
+          <button data-action="qty-increase" data-product-id="{{ item.product.id }}" data-qty="{{ item.quantity }}">+</button>
+        </div>
+        <div class="cart-item-price line-total">{{ currency }}{{ "{:,}".format(item.line_total) }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="summary-card">
+      <h3>Order Summary</h3>
+      <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">{{ currency }}{{ "{:,}".format(totals.subtotal) }}</span></div>
+      <div class="summary-row"><span>GST ({{ totals.gst_rate_pct }}%)</span><span id="sumGst">{{ currency }}{{ "{:,}".format(totals.gst) }}</span></div>
+      <div class="summary-row"><span>Delivery</span><span id="sumDelivery">{% if totals.delivery_fee == 0 %}FREE{% else %}{{ currency }}{{ totals.delivery_fee }}{% endif %}</span></div>
+      {% if totals.delivery_fee > 0 %}
+      <div class="free-delivery-note">Add {{ currency }}{{ 499 - totals.subtotal }} more for free delivery</div>
+      {% endif %}
+      <div class="summary-row total"><span>Grand Total</span><span id="sumTotal">{{ currency }}{{ "{:,}".format(totals.grand_total) }}</span></div>
+      <a href="{{ url_for('checkout.checkout') }}" class="btn btn-primary btn-block" style="margin-top:18px;">Proceed to Checkout</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>Your cart is empty</h3>
+    <p>Looks like you haven't added anything yet.</p>
+    <a href="{{ url_for('main.home') }}" class="btn btn-primary" style="margin-top:16px;">Continue Shopping</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

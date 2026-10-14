@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Analytics Dashboard — NovaCart{% endblock %}
+
+{% block content %}
+<div class="dashboard-shell">
+  <h1 class="page-title">Analytics Dashboard</h1>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value">{{ currency }}{{ "{:,}".format(kpis.revenue) }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+      <div class="kpi-label">Total Orders</div>
+      <div class="kpi-value">{{ kpis.orders }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="kpi-label">Customers</div>
+      <div class="kpi-value">{{ kpis.customers }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="kpi-label">Avg. Product Rating</div>
+      <div class="kpi-value">{{ kpis.avg_rating }} ★</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3>Revenue by Category</h3>
+      {% if revenue_by_category %}
+        {% set max_rev = revenue_by_category[0].revenue %}
+        {% for row in revenue_by_category %}
+        <div class="bar-row">
+          <div class="bar-label">{{ row.category }}</div>
+          <div class="bar-track"><div class="bar-fill" style="width: {{ (row.revenue / max_rev * 100) if max_rev else 0 }}%;"></div></div>
+          <div class="bar-value">{{ currency }}{{ "{:,}".format(row.revenue) }}</div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color:var(--gray-500); font-size:13.5px;">No orders yet — place an order to see revenue breakdown here.</p>
+      {% endif %}
+    </div>
+
+    <div class="dash-card">
+      <h3>Catalogue by Category</h3>
+      {% set max_count = catalog_distribution[0].count %}
+      {% for row in catalog_distribution %}
+      <div class="bar-row">
+        <div class="bar-label">{{ row.category }}</div>
+        <div class="bar-track"><div class="bar-fill" style="width: {{ (row.count / max_count * 100) if max_count else 0 }}%;"></div></div>
+        <div class="bar-value">{{ row.count }} items</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3>Monthly Sales</h3>
+      {% if monthly_sales %}
+      <div class="chart-columns">
+        {% set max_month_rev = (monthly_sales | map(attribute='revenue') | max) %}
+        {% for row in monthly_sales %}
+        <div class="chart-col">
+          <div class="chart-col-bar" style="height: {{ (row.revenue / max_month_rev * 100) if max_month_rev else 5 }}%;"></div>
+          <div class="chart-col-label">{{ row.month }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p style="color:var(--gray-500); font-size:13.5px;">Monthly sales will appear here once orders come in.</p>
+      {% endif %}
+    </div>
+
+    <div class="dash-card">
+      <h3>Top Selling Products</h3>
+      {% if top_products %}
+      <table class="data-table">
+        <tr><th>Product</th><th>Units</th><th>Revenue</th></tr>
+        {% for p in top_products %}
+        <tr>
+          <td>{{ p.product_name }}</td>
+          <td>{{ p.units_sold }}</td>
+          <td>{{ currency }}{{ "{:,}".format(p.revenue) }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% else %}
+      <p style="color:var(--gray-500); font-size:13.5px;">No sales recorded yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="dash-card">
+    <h3>Recent Orders</h3>
+    {% if recent_orders %}
+    <table class="data-table">
+      <tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th></tr>
+      {% for o in recent_orders %}
+      <tr>
+        <td>#{{ o.id }}</td>
+        <td>{{ o.customer_name }}</td>
+        <td>{{ o.created_at }}</td>
+        <td>{{ currency }}{{ "{:,}".format(o.grand_total) }}</td>
+        <td><span class="status-pill">{{ o.status }}</span></td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p style="color:var(--gray-500); font-size:13.5px;">No orders placed yet. Place a test order at checkout to populate this dashboard.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

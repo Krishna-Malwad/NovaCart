@@ -1,0 +1,481 @@
+{% extends "base.html" %}
+{% block title %}{% if confirmation %}Order Confirmed{% else %}Checkout{% endif %} — NovaCart{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+
+{% if confirmation %}
+  <div class="confirmation-box">
+    <div class="confirm-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2>Order Confirmed!</h2>
+    <p>Thanks {{ order.customer_name }}, your order has been placed successfully. A confirmation would normally be emailed to you.</p>
+    <div class="order-id-pill">Order #{{ order.id }}</div>
+
+    <div style="text-align:left; border-top:1px solid var(--gray-200); padding-top:20px;">
+      <h3 style="font-family:var(--font-display); font-size:15px; margin-bottom:12px;">Order Summary</h3>
+      {% for item in order_items %}
+      <div class="order-summary-mini">
+        <div style="flex:1;">{{ item.product_name }} × {{ item.quantity }}</div>
+        <div style="font-weight:600;">{{ currency }}{{ "{:,}".format(item.quantity * item.price) }}</div>
+      </div>
+      {% endfor %}
+      <div class="summary-row" style="margin-top:14px;"><span>Subtotal</span><span>{{ currency }}{{ "{:,}".format(order.subtotal) }}</span></div>
+      <div class="summary-row"><span>GST</span><span>{{ currency }}{{ "{:,}".format(order.gst) }}</span></div>
+      <div class="summary-row"><span>Delivery</span><span>{% if order.delivery_fee == 0 %}FREE{% else %}{{ currency }}{{ order.delivery_fee }}{% endif %}</span></div>
+      <div class="summary-row total"><span>Grand Total</span><span>{{ currency }}{{ "{:,}".format(order.grand_total) }}</span></div>
+    </div>
+
+    <div style="margin-top:24px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <a href="{{ url_for('main.home') }}" class="btn btn-primary">Continue Shopping</a>
+      {% if nav_user %}
+      <a href="{{ url_for('auth.profile') }}" class="btn btn-outline">View My Orders</a>
+      {% endif %}
+      {% if nav_is_admin %}
+      <a href="{{ url_for('analytics.dashboard') }}" class="btn btn-outline" style="border-color:var(--accent); color:var(--accent);">View Analytics</a>
+      {% endif %}
+    </div>
+  </div>
+
+{% else %}
+  <h1 class="page-title">Checkout</h1>
+  <div class="checkout-layout">
+    <form method="post" action="{{ url_for('checkout.place_order') }}">
+      {% if form_error %}
+      <div style="background:#FEF2F2; border:1px solid #E5484D; color:#B42318; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:13.5px;">
+        {{ form_error }}
+      </div>
+      {% endif %}
+      <div class="checkout-form-card">
+        <h3>Shipping Address</h3>
+        <div class="form-field">
+          <label for="full_name">Full Name</label>
+          <input type="text" id="full_name" name="full_name" required placeholder="e.g. Aditi Sharma" value="{{ form_values.name if form_values else '' }}">
+        </div>
+        <div class="form-field">
+          <label for="phone">Mobile Number</label>
+          <div class="input-with-prefix">
+            <span class="phone-prefix">+91</span>
+            <input type="tel" id="phone" name="phone" required placeholder="10-digit mobile number"
+                   pattern="[0-9]{10}" minlength="10" maxlength="10" inputmode="numeric"
+                   value="{{ form_values.phone if form_values else '' }}"
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"
+                   title="Mobile number must contain exactly 10 digits">
+          </div>
+          <span class="field-error" id="phoneError" style="display:none; color:#E5484D; font-size:12px; margin-top:4px;">Mobile number must contain exactly 10 digits</span>
+        </div>
+        <div class="form-field">
+          <label for="address">Address (Flat / House No., Building, Street)</label>
+          <textarea id="address" name="address" rows="2" required placeholder="House no., street, landmark">{{ form_values.address if form_values else '' }}</textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" required placeholder="e.g. Hyderabad" value="{{ form_values.city if form_values else '' }}">
+          </div>
+          <div class="form-field">
+            <label for="state">State</label>
+            <input type="text" id="state" name="state" required placeholder="e.g. Telangana" value="{{ form_values.state if form_values else '' }}">
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="pincode">Pincode</label>
+          <input type="text" id="pincode" name="pincode" required placeholder="e.g. 500039"
+                 pattern="[0-9]{6}" minlength="6" maxlength="6" inputmode="numeric"
+                 title="Pincode must contain exactly 6 digits"
+                 value="{{ form_values.pincode if form_values else '' }}"
+                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);"
+                 style="{{ 'border-color:#E5484D;' if form_error else '' }}">
+          <span class="field-error" id="pincodeError" style="display:none; color:#E5484D; font-size:12px; margin-top:4px;">Pincode must contain exactly 6 digits</span>
+        </div>
+      </div>
+
+      <div class="checkout-form-card">
+        <h3>Payment Method</h3>
+        <div class="payment-options">
+          <label class="payment-option">
+            <input type="radio" name="payment_method" value="Cash on Delivery" id="payCod" checked> Cash on Delivery
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="payment_method" value="Credit / Debit Card" id="payCard"> Credit / Debit Card
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="payment_method" value="UPI" id="payUpi"> UPI
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="payment_method" value="Net Banking" id="payNetBanking"> Net Banking
+          </label>
+        </div>
+
+        <div id="upiPanel" class="payment-subpanel" style="display:none;">
+          <img src="data:image/png;base64,{{ upi_qr_base64 }}" alt="UPI QR Code" style="width:180px; height:180px; margin:0 auto 12px; border-radius:8px; border:1px solid var(--gray-200);">
+          <p style="font-family:var(--font-display); font-weight:700; font-size:18px; margin:0 0 4px;">{{ currency }}{{ "{:,}".format(totals.grand_total) }}</p>
+          <p style="font-size:12.5px; color:var(--gray-500); margin:0 0 14px;">Scan with any UPI app to pay</p>
+          <button type="button" id="scanPayBtn" class="btn btn-primary btn-sm">I've Scanned — Enter PIN</button>
+        </div>
+
+        <div id="cardPanel" class="payment-subpanel" style="display:none;">
+          <div style="font-size:32px; margin-bottom:8px;">💳</div>
+          <p style="font-family:var(--font-display); font-weight:700; font-size:18px; margin:0 0 4px;">{{ currency }}{{ "{:,}".format(totals.grand_total) }}</p>
+          <p style="font-size:12.5px; color:var(--gray-500); margin:0 0 14px;">You'll be asked to securely enter your card details</p>
+          <button type="button" id="cardPayBtn" class="btn btn-primary btn-sm">Enter Card Details</button>
+        </div>
+
+        <div id="netbankingPanel" class="payment-subpanel" style="display:none;">
+          <div style="font-size:32px; margin-bottom:8px;">🏦</div>
+          <p style="font-family:var(--font-display); font-weight:700; font-size:18px; margin:0 0 4px;">{{ currency }}{{ "{:,}".format(totals.grand_total) }}</p>
+          <p style="font-size:12.5px; color:var(--gray-500); margin:0 0 14px;">You'll be redirected to your bank to complete payment</p>
+          <button type="button" id="netbankingPayBtn" class="btn btn-primary btn-sm">Select Bank &amp; Pay</button>
+        </div>
+
+        <p style="font-size:12px; color:var(--gray-500); margin-top:12px;">This is a demo checkout — no real payment gateway is connected.</p>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" style="padding:15px;">Place Order · {{ currency }}{{ "{:,}".format(totals.grand_total) }}</button>
+    </form>
+
+    <div class="summary-card">
+      <h3>Your Order</h3>
+      {% for item in items %}
+      <div class="order-summary-mini">
+        <img src="{{ item.product.image }}" alt="{{ item.product.name }}">
+        <div style="flex:1;">
+          <div style="font-weight:600;">{{ item.product.name }}</div>
+          <div style="color:var(--gray-500);">Qty: {{ item.quantity }}</div>
+        </div>
+        <div style="font-weight:600;">{{ currency }}{{ "{:,}".format(item.line_total) }}</div>
+      </div>
+      {% endfor %}
+      <div class="summary-row" style="margin-top:14px;"><span>Subtotal</span><span>{{ currency }}{{ "{:,}".format(totals.subtotal) }}</span></div>
+      <div class="summary-row"><span>GST ({{ totals.gst_rate_pct }}%)</span><span>{{ currency }}{{ "{:,}".format(totals.gst) }}</span></div>
+      <div class="summary-row"><span>Delivery</span><span>{% if totals.delivery_fee == 0 %}FREE{% else %}{{ currency }}{{ totals.delivery_fee }}{% endif %}</span></div>
+      <div class="summary-row total"><span>Grand Total</span><span>{{ currency }}{{ "{:,}".format(totals.grand_total) }}</span></div>
+    </div>
+  </div>
+
+  <!-- Simulated payment entry / decline modal (shared by UPI, Card, Net Banking) -->
+  <div id="paymentModal" class="upi-modal-overlay" style="display:none;">
+    <div class="upi-modal">
+      <button type="button" id="paymentModalClose" class="upi-modal-close" aria-label="Close">&times;</button>
+
+      <div id="upiStepPin">
+        <div class="upi-modal-icon">🔒</div>
+        <h3>Enter UPI PIN</h3>
+        <p class="upi-modal-sub">Paying {{ currency }}{{ "{:,}".format(totals.grand_total) }} to NovaCart</p>
+        <input type="password" id="upiPinInput" maxlength="6" inputmode="numeric" pattern="[0-9]*"
+               placeholder="Enter PIN" class="upi-pin-input" autocomplete="off">
+        <button type="button" id="upiConfirmBtn" class="btn btn-dark btn-block" style="margin-top:16px;">Confirm Payment</button>
+      </div>
+
+      <div id="cardStepEntry" style="display:none; text-align:left;">
+        <div class="upi-modal-icon" style="text-align:center;">💳</div>
+        <h3 style="text-align:center;">Enter Card Details</h3>
+        <p class="upi-modal-sub" style="text-align:center;">Paying {{ currency }}{{ "{:,}".format(totals.grand_total) }} to NovaCart</p>
+        <div class="form-field">
+          <label for="cardNumberInput">Card Number</label>
+          <input type="text" id="cardNumberInput" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="form-row" style="margin-bottom:0;">
+          <div class="form-field">
+            <label for="cardExpiryInput">Expiry</label>
+            <input type="text" id="cardExpiryInput" placeholder="MM/YY" maxlength="5" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-field">
+            <label for="cardCvvInput">CVV</label>
+            <input type="password" id="cardCvvInput" placeholder="123" maxlength="4" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="cardNameInput">Name on Card</label>
+          <input type="text" id="cardNameInput" placeholder="As printed on card" autocomplete="off">
+        </div>
+        <button type="button" id="cardConfirmBtn" class="btn btn-dark btn-block" style="margin-top:6px;">Pay {{ currency }}{{ "{:,}".format(totals.grand_total) }}</button>
+      </div>
+
+      <div id="netbankingStepEntry" style="display:none;">
+        <div class="upi-modal-icon">🏦</div>
+        <h3>Select Your Bank</h3>
+        <p class="upi-modal-sub">Paying {{ currency }}{{ "{:,}".format(totals.grand_total) }} to NovaCart</p>
+        <div class="form-field" style="text-align:left;">
+          <select id="bankSelectInput">
+            <option value="">Choose your bank</option>
+            <option value="SBI">State Bank of India</option>
+            <option value="HDFC">HDFC Bank</option>
+            <option value="ICICI">ICICI Bank</option>
+            <option value="AXIS">Axis Bank</option>
+            <option value="KOTAK">Kotak Mahindra Bank</option>
+            <option value="PNB">Punjab National Bank</option>
+            <option value="OTHER">Other Bank</option>
+          </select>
+        </div>
+        <button type="button" id="netbankingConfirmBtn" class="btn btn-dark btn-block" style="margin-top:10px;">Proceed to Bank</button>
+      </div>
+
+      <div id="upiStepLoading" style="display:none; text-align:center; padding:20px 0;">
+        <div class="upi-spinner"></div>
+        <p id="loadingText" style="margin-top:16px; color:var(--gray-600); font-size:14px;">Processing payment...</p>
+      </div>
+
+      <div id="upiStepDeclined" style="display:none; text-align:center;">
+        <div class="upi-modal-icon" style="color:var(--red-500);">✕</div>
+        <h3 style="color:var(--red-500);">Payment Declined</h3>
+        <p class="upi-modal-sub" id="declinedMessage">Your bank declined this transaction. This is a demo checkout — no real payment is processed.</p>
+        <div style="display:flex; gap:10px; margin-top:18px;">
+          <button type="button" id="paymentTryAgainBtn" class="btn btn-outline" style="flex:1;">Try Again</button>
+          <button type="button" id="paymentSwitchMethodBtn" class="btn btn-primary" style="flex:1;">Use Cash on Delivery</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const pincodeInput = document.getElementById("pincode");
+  const pincodeError = document.getElementById("pincodeError");
+  const phoneInput = document.getElementById("phone");
+  const phoneError = document.getElementById("phoneError");
+  if (!pincodeInput || !phoneInput) return;
+
+  pincodeInput.addEventListener("input", () => {
+    pincodeInput.value = pincodeInput.value.replace(/\D/g, "").slice(0, 6);
+    if (pincodeError) pincodeError.style.display = "none";
+    pincodeInput.style.borderColor = "";
+  });
+
+  phoneInput.addEventListener("input", () => {
+    phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 10);
+    if (phoneError) phoneError.style.display = "none";
+    phoneInput.style.borderColor = "";
+  });
+
+  const form = pincodeInput.closest("form");
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      let hasError = false;
+      const isPhoneValid = /^[0-9]{10}$/.test(phoneInput.value.trim());
+      if (!isPhoneValid) {
+        e.preventDefault();
+        if (phoneError) phoneError.style.display = "block";
+        phoneInput.style.borderColor = "#E5484D";
+        phoneInput.focus();
+        hasError = true;
+      }
+
+      const isPincodeValid = /^[0-9]{6}$/.test(pincodeInput.value.trim());
+      if (!isPincodeValid) {
+        e.preventDefault();
+        if (pincodeError) pincodeError.style.display = "block";
+        pincodeInput.style.borderColor = "#E5484D";
+        if (!hasError) pincodeInput.focus();
+        hasError = true;
+      }
+    });
+  }
+})();
+
+// ---------- Simulated payment flow (UPI, Card, Net Banking) ----------
+(function () {
+  const upiRadio = document.getElementById("payUpi");
+  const cardRadio = document.getElementById("payCard");
+  const netbankingRadio = document.getElementById("payNetBanking");
+  const codRadio = document.getElementById("payCod");
+
+  const upiPanel = document.getElementById("upiPanel");
+  const cardPanel = document.getElementById("cardPanel");
+  const netbankingPanel = document.getElementById("netbankingPanel");
+
+  const scanPayBtn = document.getElementById("scanPayBtn");
+  const cardPayBtn = document.getElementById("cardPayBtn");
+  const netbankingPayBtn = document.getElementById("netbankingPayBtn");
+  const checkoutForm = document.querySelector(".checkout-layout form");
+
+  const modal = document.getElementById("paymentModal");
+  if (!modal) return;
+  const modalClose = document.getElementById("paymentModalClose");
+
+  const stepPin = document.getElementById("upiStepPin");
+  const stepCard = document.getElementById("cardStepEntry");
+  const stepNetbanking = document.getElementById("netbankingStepEntry");
+  const stepLoading = document.getElementById("upiStepLoading");
+  const stepDeclined = document.getElementById("upiStepDeclined");
+  const loadingText = document.getElementById("loadingText");
+  const declinedMessage = document.getElementById("declinedMessage");
+
+  const pinInput = document.getElementById("upiPinInput");
+  const confirmBtn = document.getElementById("upiConfirmBtn");
+
+  const cardNumberInput = document.getElementById("cardNumberInput");
+  const cardExpiryInput = document.getElementById("cardExpiryInput");
+  const cardCvvInput = document.getElementById("cardCvvInput");
+  const cardNameInput = document.getElementById("cardNameInput");
+  const cardConfirmBtn = document.getElementById("cardConfirmBtn");
+
+  const bankSelectInput = document.getElementById("bankSelectInput");
+  const netbankingConfirmBtn = document.getElementById("netbankingConfirmBtn");
+
+  const tryAgainBtn = document.getElementById("paymentTryAgainBtn");
+  const switchMethodBtn = document.getElementById("paymentSwitchMethodBtn");
+
+  const DECLINE_MESSAGES = {
+    upi: "Your bank declined this transaction. This is a demo checkout — no real payment is processed.",
+    card: "Your card issuer declined this transaction. This is a demo checkout — no real payment is processed.",
+    netbanking: "Your bank declined this transaction. This is a demo checkout — no real payment is processed.",
+  };
+  const LOADING_MESSAGES = {
+    upi: "Processing payment...",
+    card: "Processing payment...",
+    netbanking: "Redirecting to your bank...",
+  };
+
+  let currentMethod = "upi";
+
+  function togglePanel() {
+    upiPanel.style.display = upiRadio.checked ? "block" : "none";
+    cardPanel.style.display = cardRadio.checked ? "block" : "none";
+    netbankingPanel.style.display = netbankingRadio.checked ? "block" : "none";
+  }
+  document.querySelectorAll('input[name="payment_method"]').forEach(r => {
+    r.addEventListener("change", togglePanel);
+  });
+  togglePanel();
+
+  function showStep(step) {
+    stepPin.style.display = step === "upi" ? "block" : "none";
+    stepCard.style.display = step === "card" ? "block" : "none";
+    stepNetbanking.style.display = step === "netbanking" ? "block" : "none";
+    stepLoading.style.display = step === "loading" ? "block" : "none";
+    stepDeclined.style.display = step === "declined" ? "block" : "none";
+  }
+
+  function openModal(method) {
+    currentMethod = method;
+    if (method === "upi") {
+      pinInput.value = "";
+      pinInput.style.borderColor = "";
+      showStep("upi");
+      setTimeout(() => pinInput.focus(), 50);
+    } else if (method === "card") {
+      showStep("card");
+    } else if (method === "netbanking") {
+      bankSelectInput.value = "";
+      bankSelectInput.style.borderColor = "";
+      showStep("netbanking");
+    }
+    modal.style.display = "flex";
+  }
+
+  function closeModal() {
+    modal.style.display = "none";
+  }
+
+  scanPayBtn.addEventListener("click", () => openModal("upi"));
+  cardPayBtn.addEventListener("click", () => openModal("card"));
+  netbankingPayBtn.addEventListener("click", () => openModal("netbanking"));
+  modalClose.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+  function decline() {
+    loadingText.textContent = LOADING_MESSAGES[currentMethod];
+    showStep("loading");
+    setTimeout(() => {
+      declinedMessage.textContent = DECLINE_MESSAGES[currentMethod];
+      showStep("declined");
+    }, 1400);
+  }
+
+  // --- UPI PIN ---
+  pinInput.addEventListener("input", () => {
+    pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 6);
+  });
+  function attemptUpi() {
+    if (pinInput.value.length < 4) {
+      pinInput.style.borderColor = "#E5484D";
+      pinInput.focus();
+      return;
+    }
+    decline();
+  }
+  confirmBtn.addEventListener("click", attemptUpi);
+  pinInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); attemptUpi(); }
+  });
+
+  // --- Card details (formatting + minimal validation, still fully simulated) ---
+  cardNumberInput.addEventListener("input", () => {
+    const digits = cardNumberInput.value.replace(/\D/g, "").slice(0, 16);
+    cardNumberInput.value = digits.replace(/(.{4})/g, "$1 ").trim();
+    cardNumberInput.style.borderColor = "";
+  });
+  cardExpiryInput.addEventListener("input", () => {
+    let digits = cardExpiryInput.value.replace(/\D/g, "").slice(0, 4);
+    if (digits.length >= 3) digits = digits.slice(0, 2) + "/" + digits.slice(2);
+    cardExpiryInput.value = digits;
+    cardExpiryInput.style.borderColor = "";
+  });
+  cardCvvInput.addEventListener("input", () => {
+    cardCvvInput.value = cardCvvInput.value.replace(/\D/g, "").slice(0, 4);
+    cardCvvInput.style.borderColor = "";
+  });
+  cardNameInput.addEventListener("input", () => {
+    cardNameInput.style.borderColor = "";
+  });
+  function attemptCard() {
+    const cardDigits = cardNumberInput.value.replace(/\D/g, "");
+    const expiryOk = /^\d{2}\/\d{2}$/.test(cardExpiryInput.value);
+    const cvvOk = cardCvvInput.value.length >= 3;
+    const nameOk = cardNameInput.value.trim().length >= 2;
+    let valid = true;
+    if (cardDigits.length < 16) { cardNumberInput.style.borderColor = "#E5484D"; valid = false; }
+    if (!expiryOk) { cardExpiryInput.style.borderColor = "#E5484D"; valid = false; }
+    if (!cvvOk) { cardCvvInput.style.borderColor = "#E5484D"; valid = false; }
+    if (!nameOk) { cardNameInput.style.borderColor = "#E5484D"; valid = false; }
+    if (!valid) return;
+    decline();
+  }
+  cardConfirmBtn.addEventListener("click", attemptCard);
+
+  // --- Net banking ---
+  function attemptNetbanking() {
+    if (!bankSelectInput.value) {
+      bankSelectInput.style.borderColor = "#E5484D";
+      return;
+    }
+    decline();
+  }
+  netbankingConfirmBtn.addEventListener("click", attemptNetbanking);
+
+  tryAgainBtn.addEventListener("click", () => openModal(currentMethod));
+
+  switchMethodBtn.addEventListener("click", () => {
+    codRadio.checked = true;
+    togglePanel();
+    closeModal();
+  });
+
+  // If a simulated method is selected, block the real order submission and
+  // route through the simulated flow instead — none of these ever actually
+  // complete in this demo; only Cash on Delivery reaches the server as-is.
+  if (checkoutForm) {
+    checkoutForm.addEventListener("submit", (e) => {
+      const method = upiRadio.checked ? "upi" : cardRadio.checked ? "card" : netbankingRadio.checked ? "netbanking" : null;
+      if (method) {
+        const phoneEl = document.getElementById("phone");
+        const pincodeEl = document.getElementById("pincode");
+        const phoneOk = !phoneEl || /^[0-9]{10}$/.test(phoneEl.value.trim());
+        const pincodeOk = !pincodeEl || /^[0-9]{6}$/.test(pincodeEl.value.trim());
+        if (phoneOk && pincodeOk) {
+          e.preventDefault();
+          openModal(method);
+        }
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

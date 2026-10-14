@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found — NovaCart{% endblock %}
+{% block content %}
+<div class="notfound">
+  <h1>404</h1>
+  <h3 style="font-family: var(--font-display); margin: 12px 0;">This page wandered off</h3>
+  <p style="color: var(--gray-500); margin-bottom: 24px;">The page you're looking for doesn't exist or may have been moved.</p>
+  <a href="{{ url_for('main.home') }}" class="btn btn-primary">Back to Home</a>
+</div>
+{% endblock %}

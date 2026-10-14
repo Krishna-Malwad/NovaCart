@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Wishlist — NovaCart{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+  <h1 class="page-title">Your Wishlist {% if products %}({{ products|length }}){% endif %}</h1>
+
+  {% if products %}
+  <div class="wishlist-grid">
+    {% for p in products %}
+    <div class="product-card">
+      <a href="{{ url_for('main.product_detail', product_id=p.id) }}">
+        <div class="product-card-media">
+          {% if p.discount_pct and p.discount_pct > 0 %}
+          <span class="discount-ribbon">{{ p.discount_pct }}% OFF</span>
+          {% endif %}
+          <img src="{{ p.image }}" alt="{{ p.name }}">
+        </div>
+      </a>
+      <div class="product-card-body">
+        <a href="{{ url_for('main.product_detail', product_id=p.id) }}">
+          <div class="product-brand">{{ p.brand }}</div>
+          <div class="product-name">{{ p.name }}</div>
+        </a>
+        <div class="product-rating">
+          <span class="rating-pill">{{ p.rating }} ★</span>
+          <span>({{ p.reviews }})</span>
+        </div>
+        <div class="price-row">
+          <span class="price-current">{{ currency }}{{ "{:,}".format(p.discounted_price) }}</span>
+          {% if p.discount_pct and p.discount_pct > 0 %}
+          <span class="price-original">{{ currency }}{{ "{:,}".format(p.original_price) }}</span>
+          {% endif %}
+        </div>
+        <div class="product-card-actions">
+          <button class="btn btn-primary" data-action="move-to-cart" data-product-id="{{ p.id }}">Move to Cart</button>
+          <button class="btn btn-outline" data-action="remove-from-wishlist" data-product-id="{{ p.id }}">Remove</button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>Your wishlist is empty</h3>
+    <p>Save products you love to find them here later.</p>
+    <a href="{{ url_for('main.home') }}" class="btn btn-primary" style="margin-top:16px;">Explore Products</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

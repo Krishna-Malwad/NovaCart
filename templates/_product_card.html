@@ -1,0 +1,55 @@
+{% macro product_card(p, is_deal=false, wishlisted_ids=[]) %}
+<div class="product-card {% if is_deal %}deal-card{% endif %}">
+  <div class="product-card-media-wrap">
+    <a href="{{ url_for('main.product_detail', product_id=p.id) }}" class="product-card-media">
+      {% if p.discount_pct and p.discount_pct > 0 %}
+      <span class="discount-ribbon">{{ p.discount_pct }}% OFF</span>
+      {% endif %}
+      <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy"
+           onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'300\' viewBox=\'0 0 300 300\' fill=\'%23f1f5f9\'><rect width=\'300\' height=\'300\' fill=\'%23f8fafc\'/><text x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%2394a3b8\'>NovaCart Product</text></svg>';">
+    </a>
+    <button class="wishlist-toggle {% if p.id in wishlisted_ids %}active{% endif %}" data-product-id="{{ p.id }}" data-action="toggle-wishlist" aria-label="Toggle wishlist" title="Add to Wishlist">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.6z"/></svg>
+    </button>
+  </div>
+  <div class="product-card-body">
+    <div class="product-card-category-brand">
+      <span class="product-brand">{{ p.brand }}</span>
+      <span class="product-card-category">{{ p.category }}</span>
+    </div>
+    <a href="{{ url_for('main.product_detail', product_id=p.id) }}" class="product-title-link">
+      <h3 class="product-name" title="{{ p.name }}">{{ p.name }}</h3>
+    </a>
+    <div class="product-rating">
+      <span class="rating-pill">{{ p.rating }} ★</span>
+      <span class="review-count">({{ "{:,}".format(p.reviews) }})</span>
+    </div>
+    <div class="price-row">
+      <span class="price-current">{{ currency }}{{ "{:,}".format(p.discounted_price) }}</span>
+      {% if p.discount_pct and p.discount_pct > 0 %}
+      <span class="price-original">{{ currency }}{{ "{:,}".format(p.original_price) }}</span>
+      <span class="price-discount-tag">{{ p.discount_pct }}% off</span>
+      {% endif %}
+    </div>
+    {% if p.discount_pct and p.discount_pct > 0 %}
+    <div class="price-savings">Save {{ currency }}{{ "{:,}".format(p.original_price - p.discounted_price) }}</div>
+    {% endif %}
+    <div class="stock-status-row">
+      {% if p.stock == 0 %}
+      <span class="stock-badge out-of-stock">Out of Stock</span>
+      {% elif p.stock < 8 %}
+      <span class="stock-badge low-stock">Only {{ p.stock }} left</span>
+      {% else %}
+      <span class="stock-badge in-stock">In Stock</span>
+      {% endif %}
+      <span class="delivery-badge">Free Delivery</span>
+    </div>
+    <div class="product-card-actions">
+      <button class="btn btn-primary btn-block btn-add-cart" data-action="add-to-cart" data-product-id="{{ p.id }}" {% if p.stock == 0 %}disabled{% endif %}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:4px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Add to Cart
+      </button>
+    </div>
+  </div>
+</div>
+{% endmacro %}
